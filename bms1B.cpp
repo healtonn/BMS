@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <math.h>
+#include <iostream>
 
 #include "sndfile.hh"
 
@@ -17,15 +18,20 @@ int main(int argc, char** argv) {
     
     SndfileHandle inputFile;
     int sampleRate;
-    int *buffer;
+    float *buffer;
     
-    inputFile = SndfileHandle("sine.waw");
+    inputFile = SndfileHandle("sine.wav");
     
     sampleRate = inputFile.samplerate();
+    cout << "ziskana samplerate: " << sampleRate << endl;
     
-    buffer = new int[sampleRate];
+    buffer = new float[sampleRate];
 
-    inputFile.read(buffer, sampleRate);
+    //inputFile.read(buffer, sampleRate);
+    cout << inputFile.read(buffer, sampleRate) << endl;
+    for (int i = 0; i < sampleRate; i++){
+        cout << "ziskane hodnoty: " << buffer[i] << endl;
+    }
     
     
     delete [] buffer;
