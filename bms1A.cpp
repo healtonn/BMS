@@ -9,7 +9,7 @@
 
 #include "sndfile.hh"
 
-#define SAMPLE_RATE 1000
+#define SAMPLE_RATE 18000
 #define CHANELS 1
 #define FORMAT (SF_FORMAT_WAV | SF_FORMAT_PCM_24)
 #define AMPLITUDE (1.0 * 0x7F000000)
@@ -17,7 +17,10 @@
 
 using namespace std;
 
+const char* sync = "0011001100";
+
 string getFileNameFromParameters(int argc, char** argv);
+float setAmplitude(char* pair);
 
 /*
  * 
@@ -56,7 +59,7 @@ int main(int argc, char** argv) {
     }
 
     
-    outputFile = SndfileHandle("sine.waw", SFM_WRITE, FORMAT, CHANELS, SAMPLE_RATE);
+    outputFile = SndfileHandle("sine.wav", SFM_WRITE, FORMAT, CHANELS, SAMPLE_RATE);
 
     
     outputFile.write(buffer, SAMPLE_RATE);
