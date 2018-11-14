@@ -1,2 +1,4 @@
 bms1A
 bms1B
+*.wav
+.vscode/*
