@@ -16,11 +16,13 @@
 #define CHANELS 1
 #define FORMAT (SF_FORMAT_WAV | SF_FORMAT_PCM_24)
 #define AMPLITUDE (1.0 * 0x7F000000)
+#define FREQUENCY 1000
 #define FREQ (1000.0 / SAMPLE_RATE)
+#define SAMPLES_PER_BAUD (SAMPLE_RATE / FREQUENCY)    //one baud, one sinus
 
 using namespace std;
 
-const char* syncSequence = "0011001100";
+const char* syncSequence = "00110011";
 unsigned const int sequenceSize = strlen(syncSequence);
 
 string getFileNameFromParameters(int argc, char** argv);
@@ -61,7 +63,10 @@ int main(int argc, char** argv) {
 
 
     SndfileHandle outputFile;
-    int bufferSize = SAMPLE_RATE * ((sequenceSize + bits.size()) / 2); 
+    int bufferSize = SAMPLES_PER_BAUD * (bits.size() / 2); 
+    cout << "SIZE: " << bufferSize << endl;
+    cout << "pocet baudu: " << bits.size() / 2 << endl;
+    cout << "samples per baud: " << SAMPLES_PER_BAUD << endl;
     int *buffer = new int[bufferSize];
     int signalValue;
     int bitPairIndex = 0;
@@ -69,24 +74,25 @@ int main(int argc, char** argv) {
     char tmp[3];    // store bit pairs here
     tmp[2] = '\0';
     for (int i = 0; i < bufferSize; i++){
-        if(i % SAMPLE_RATE == 0){
+        //cout << i  << " modulo: " << i % samplesPerBaud << endl;
+        if(i % SAMPLES_PER_BAUD == 0){
             tmp[0] = bits[bitPairIndex];
             tmp[1] = bits[bitPairIndex + 1];
             bitPairIndex += 2;
             modifier = setModifier(tmp);
-            //cout << "modifier set to: " << modifier <<  endl;
+            //cout << "modifier set to: " << modifier << " pro dvojci " << tmp[0] << tmp[1] <<  endl;
             //usleep(500000);
         }
 
         signalValue = modifier * AMPLITUDE * sin(FREQ * 2 * i * M_PI);
-        //cout << "generovana hodnota: " << signalValue << endl;
+        cout << "generovana hodnota: " << signalValue << endl;
 
         buffer [i] = signalValue;
         //cout << "buffer: " << buffer[i] << endl;
     }
 
     
-    outputFile = SndfileHandle("sine.wav", SFM_WRITE, FORMAT, CHANELS, bufferSize);
+    outputFile = SndfileHandle("sine.wav", SFM_WRITE, FORMAT, CHANELS, SAMPLE_RATE);
 
     
     outputFile.write(buffer, bufferSize);
