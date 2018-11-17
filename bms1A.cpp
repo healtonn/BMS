@@ -7,10 +7,12 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <unistd.h>
+#include <string.h>
 
 #include "sndfile.hh"
 
-#define SAMPLE_RATE 100
+#define SAMPLE_RATE 18000
 #define CHANELS 1
 #define FORMAT (SF_FORMAT_WAV | SF_FORMAT_PCM_24)
 #define AMPLITUDE (1.0 * 0x7F000000)
@@ -18,17 +20,19 @@
 
 using namespace std;
 
-const char* sync = "0011001100";
+const char* syncSequence = "0011001100";
+unsigned const int sequenceSize = strlen(syncSequence);
 
 string getFileNameFromParameters(int argc, char** argv);
-float setmodifier(char* pair);
+float setModifier(char* pair);
 
 /*
  * 
  */
 int main(int argc, char** argv) {
-    string filename = getFileNameFromParameters(argc, argv);    //find fie name
-    cout << filename << endl;
+    string filename = getFileNameFromParameters(argc, argv);    //find file name
+    //cout << filename << endl;
+    //cout << "test: " << sequenceSize << endl;
 
     ifstream inputFile;
     inputFile.open(filename);
@@ -44,37 +48,48 @@ int main(int argc, char** argv) {
     while(inputFile >> c){
         bits.push_back(c);
     }
+    inputFile.close();
+
+    // insert synchronization sequenc at the beginning of the message
+    for (unsigned int i = 0; i <sequenceSize; i++)
+        bits.insert(bits.begin(), syncSequence[sequenceSize - 1 - i]);
     
-    char tmp[2];    // store bit pairs here
-    float modifier;
-    for(unsigned int i = 0; i < bits.size(); i = i + 2){
-        cout << bits[i] << bits[i + 1] << endl;
-        tmp[0] = bits[i];
-        tmp[1] = bits[i + 1];
-        modifier = setmodifier(tmp);
+    for(unsigned int i = 0; i < bits.size(); i ++){
+        cout << bits[i];
     }
     cout << endl;
 
-    inputFile.close();
-
 
     SndfileHandle outputFile;
-    float *buffer = new float[SAMPLE_RATE];
+    int bufferSize = SAMPLE_RATE * ((sequenceSize + bits.size()) / 2); 
+    int *buffer = new int[bufferSize];
+    int signalValue;
+    int bitPairIndex = 0;
+    float modifier = 1.0;
+    char tmp[3];    // store bit pairs here
+    tmp[2] = '\0';
+    for (int i = 0; i < bufferSize; i++){
+        if(i % SAMPLE_RATE == 0){
+            tmp[0] = bits[bitPairIndex];
+            tmp[1] = bits[bitPairIndex + 1];
+            bitPairIndex += 2;
+            modifier = setModifier(tmp);
+            //cout << "modifier set to: " << modifier <<  endl;
+            //usleep(500000);
+        }
 
-    float test;
-    for (int i = 0; i < SAMPLE_RATE; i++){
-        test = AMPLITUDE * sin(FREQ * 2 * i * M_PI);
-        cout << "generovana hodnota: " << test << endl;
+        signalValue = modifier * AMPLITUDE * sin(FREQ * 2 * i * M_PI);
+        //cout << "generovana hodnota: " << signalValue << endl;
 
-        buffer [i] = test;
-        cout << "buffer: " << buffer[i] << endl;
+        buffer [i] = signalValue;
+        //cout << "buffer: " << buffer[i] << endl;
     }
 
     
-    outputFile = SndfileHandle("sine.wav", SFM_WRITE, FORMAT, CHANELS, SAMPLE_RATE);
+    outputFile = SndfileHandle("sine.wav", SFM_WRITE, FORMAT, CHANELS, bufferSize);
 
     
-    outputFile.write(buffer, SAMPLE_RATE);
+    outputFile.write(buffer, bufferSize);
 
     delete [] buffer;
     return EXIT_SUCCESS;
@@ -94,14 +109,14 @@ string getFileNameFromParameters(int argc, char** argv){
 }
 
 /*
- * Based upon bit pairs, move sin()  
+ * Based upon bit pairs, set modifier  
  */
-float setmodifier(char* pair){
-    string _pair(2, *pair);
+float setModifier(char* pair){
+    string _pair(pair);
     //cout << "pair: " << _pair << endl;
     if(_pair == "00")      return 0.0;
-    else if(_pair == "01") return 1/3;
-    else if(_pair == "10") return 2/3;
-    else                   return 1;
+    else if(_pair == "01") return 1.0/3.0;
+    else if(_pair == "10") return 2.0/3.0;
+    else                   return 1.0;
 }
 
