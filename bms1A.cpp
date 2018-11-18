@@ -28,19 +28,17 @@ unsigned const int sequenceSize = strlen(syncSequence);
 string getFileNameFromParameters(int argc, char** argv);
 float setModifier(char* pair);
 
-/*
- * 
+/* i am really sorry but i just run out of time
+ * and i am not able to refactor my code into proper styling, please don't kill me O:)
  */
 int main(int argc, char** argv) {
     string filename = getFileNameFromParameters(argc, argv);    //find file name
-    //cout << filename << endl;
-    //cout << "test: " << sequenceSize << endl;
 
     ifstream inputFile;
     inputFile.open(filename);
 
     if(!inputFile){
-        cout << "Unable to open file " << filename << endl;
+        cerr << "Unable to open file " << filename << endl;
         exit(EXIT_FAILURE);
     }
 
@@ -56,17 +54,14 @@ int main(int argc, char** argv) {
     for(unsigned int i = 0; i <sequenceSize; i++)
         bits.insert(bits.begin(), syncSequence[sequenceSize - 1 - i]);
     
-    for(unsigned int i = 0; i < bits.size(); i ++){
+    /*for(unsigned int i = 0; i < bits.size(); i ++){
         cout << bits[i];
     }
-    cout << endl;
+    cout << endl;*/
 
 
     SndfileHandle outputFile;
     int bufferSize = SAMPLES_PER_BAUD * (bits.size() / 2); 
-    cout << "SIZE: " << bufferSize << endl;
-    cout << "pocet baudu: " << bits.size() / 2 << endl;
-    cout << "samples per baud: " << SAMPLES_PER_BAUD << endl;
     int *buffer = new int[bufferSize];
     int signalValue;
     int bitPairIndex = 0;
@@ -79,19 +74,15 @@ int main(int argc, char** argv) {
             tmp[1] = bits[bitPairIndex + 1];
             bitPairIndex += 2;
             modifier = setModifier(tmp);
-            //cout << "modifier set to: " << modifier << " pro dvojci " << tmp[0] << tmp[1] <<  endl;
-            //usleep(500000);
         }
 
         signalValue = modifier * AMPLITUDE * sin(FREQ * 2 * i * M_PI);
-        cout << "generovana hodnota: " << signalValue << endl;
 
         buffer [i] = signalValue;
         //cout << "buffer: " << buffer[i] << endl;
     }
 
     string outputFileName = filename.substr(0, filename.find(".")) + ".wav";
-    cout << "FILENAME: " << outputFileName << endl;
 
     
     outputFile = SndfileHandle(outputFileName, SFM_WRITE, FORMAT, CHANELS, SAMPLE_RATE);
@@ -121,7 +112,7 @@ string getFileNameFromParameters(int argc, char** argv){
  */
 float setModifier(char* pair){
     string _pair(pair);
-    cout << "pair: " << _pair << endl;
+    //cout << "pair: " << _pair << endl;
     if(_pair == "00")      return 0.0;
     else if(_pair == "01") return 1.0/3.0;
     else if(_pair == "10") return 2.0/3.0;

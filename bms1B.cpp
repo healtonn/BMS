@@ -35,9 +35,6 @@ int main(int argc, char** argv) {   // i am really sorry but i just run out of t
     
     inputFile = SndfileHandle(fileName);
     sampleRate = inputFile.samplerate();
-    int samplesPerSinus = sampleRate / FREQUENCY;       //samples per one "wave"
-    cout << "ziskana samplerate: " << sampleRate << ", stanovena samlpes per sinus: " << samplesPerSinus << endl;
-    cout << "amplituda: " << AMPLITUDE << endl;
 
     buffer = new int[sampleRate];
 
@@ -58,11 +55,9 @@ int main(int argc, char** argv) {   // i am really sorry but i just run out of t
         
         sampleCounter++;
         inputFile.read(sample, 1);
-        cout << "counter: " << sampleCounter << ", nacetl jsem: " << *sample << endl;
         if(*sample == 0 && firstZeros){
             numberOfFirstZeros++;
         }else if(*sample != 0 && firstZeros){
-            cout << "prvnich nul nalezeno: " << numberOfFirstZeros << endl;
             firstZeros = false;
         }
         if(!zeroCheck && secondZeros && !firstZeros){
@@ -70,7 +65,6 @@ int main(int argc, char** argv) {   // i am really sorry but i just run out of t
         }
 
         if(*sample == 0 && lastValue == 0 && !firstZeros && !zeroCheck){
-            cout << "nastavuji zeroCheck" << endl;
             zeroCheck = true;
             secondZeros = false;
             numberOfSecondZeros++;
@@ -82,35 +76,24 @@ int main(int argc, char** argv) {   // i am really sorry but i just run out of t
 
         if(!firstZeros && zeroCheck && *sample != 0){
             result = (numberOfFirstZeros + numberOfSecondZeros + numberOfNonZeros) / 3;
-            cout << "result: " << result << endl;
            for(int i = 1; i < result; i++){
                 inputFile.read(sample, 1);
-                cout << "vyhodil jsem: " << *sample << endl;
             }
             break;
         }
 
     }
     samplesPerBaud = result;
-    cout << "tmp1: " << numberOfFirstZeros << endl;
-    cout << "tmp2: " << numberOfSecondZeros << endl;
-    cout << "tmp3: " << numberOfNonZeros << endl;
-    cout << "samples per baud: " << samplesPerBaud << endl;
 
     int maximum = 0;
     int i = 0;
     vector<int> bits;
-    cout << "1/3 amplituda: " << THIRD_AMPLITUDE << endl;
-    cout << "2/3 amplituda: " << TWO_THIRDS_AMPLITUDE << endl;
-    cout << "amplituda: " << AMPLITUDE << endl;
     while(inputFile.read(sample,1)){
         i++;
-        cout << "COUNTER: " << i << ", DEBUG: " << *sample << endl;
         if(maximum < *sample)
             maximum = abs(*sample);
 
         if(i % samplesPerBaud == 0){
-            cout << "maximum: " << maximum << endl;
             if(maximum == 0){
                 bits.push_back(0);
                 bits.push_back(0);
@@ -126,22 +109,19 @@ int main(int argc, char** argv) {   // i am really sorry but i just run out of t
             }else{
                 bits.push_back(2);
             }
-            cout << "resetuju pro vzorek: " << i << endl;
             maximum = 0;
         }
     }
 
-    cout << "debug: ";
-    for(int i = 0; i < bits.size(); i++){
+    /*for(int i = 0; i < bits.size(); i++){
         cout << bits[i];
     }
-    cout << endl;
+    cout << endl;*/
     string outputFileName = fileName.substr(0, fileName.find(".")) + ".txt";
-    cout << "FILENAME: " << outputFileName << endl;
 
     ofstream output (outputFileName);
     if(output.is_open()){
-        for(int i = 0; i < bits.size(); i++){
+        for(unsigned int i = 0; i < bits.size(); i++){
             output << bits[i];
         }
 
