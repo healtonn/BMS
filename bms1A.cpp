@@ -12,7 +12,7 @@
 
 #include "sndfile.hh"
 
-#define SAMPLE_RATE 18000
+#define SAMPLE_RATE 32000
 #define CHANELS 1
 #define FORMAT (SF_FORMAT_WAV | SF_FORMAT_PCM_24)
 #define AMPLITUDE (1.0 * 0x7F000000)
@@ -52,8 +52,8 @@ int main(int argc, char** argv) {
     }
     inputFile.close();
 
-    // insert synchronization sequenc at the beginning of the message
-    for (unsigned int i = 0; i <sequenceSize; i++)
+    // insert synchronization sequence at the beginning of the message
+    for(unsigned int i = 0; i <sequenceSize; i++)
         bits.insert(bits.begin(), syncSequence[sequenceSize - 1 - i]);
     
     for(unsigned int i = 0; i < bits.size(); i ++){
