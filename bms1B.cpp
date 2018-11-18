@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <math.h>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <cmath>
 
@@ -26,10 +27,9 @@ string getFileNameFromParameters(int argc, char** argv);
 /*
  * 
  */
-int main(int argc, char** argv) {
-    
-    SndfileHandle inputFile;
-    string fileName = getFileNameFromParameters(argc, argv);
+int main(int argc, char** argv) {   // i am really sorry but i just run out of time
+    SndfileHandle inputFile;        // and i am not able to refactor my code into proper styling
+    string fileName = getFileNameFromParameters(argc, argv);    // please don't kill me O:)
     int sampleRate;
     int *buffer;
     
@@ -41,64 +41,47 @@ int main(int argc, char** argv) {
 
     buffer = new int[sampleRate];
 
-    //inputFile.read(buffer, sampleRate);
     int samplesPerBaud = 0;
     int sampleCounter = 0;
     int *sample = new int;
     *sample = 0;
-    int test;
-    /*while(true){          //baud begins with "0"
-        sampleCounter++;
-        test = inputFile.read(sample, 1);
-        cout << "counter: " << sampleCounter << ", sample: " << *sample << endl;
-        if(*sample != 0){
-            if(samplesPerBaud == 0){
-                samplesPerBaud = sampleCounter - 2;
-                cout << "zjisteno vzorku na baud: " << samplesPerBaud << endl;
-            }
-        }
-
-        if((samplesPerBaud != 0) && (sampleCounter % (4 * samplesPerBaud)) == 0){// times 4 because sync sequence is 4 bauds
-            break;
-        }
-    }*/
-    int tmp1 = 0;
+    int numberOfFirstZeros = 0;
     int result;
-    bool tmp = true;
-    bool tmmp = false;
-    bool tmmp3 = true;
-    int tmp2 = 0;
-    int tmp3 = 0;
+    bool firstZeros = true;
+    bool zeroCheck = false;
+    bool secondZeros = true;
+    int numberOfSecondZeros = 0;
+    int numberOfNonZeros = 0;
     int lastValue;
     while(true){
         lastValue = *sample;
         
         sampleCounter++;
-        test = inputFile.read(sample, 1);
+        inputFile.read(sample, 1);
         cout << "counter: " << sampleCounter << ", nacetl jsem: " << *sample << endl;
-        if(*sample == 0 && tmp){
-            tmp1++;
-        }else if(*sample != 0 && tmp){
-            cout << "prvnich nul nalezeno: " << tmp1 << endl;
-            tmp = false;
+        if(*sample == 0 && firstZeros){
+            numberOfFirstZeros++;
+        }else if(*sample != 0 && firstZeros){
+            cout << "prvnich nul nalezeno: " << numberOfFirstZeros << endl;
+            firstZeros = false;
         }
-        if(!tmmp && tmmp3 && !tmp){
-            tmp3++;
-        }
-
-        if(*sample == 0 && lastValue == 0 && !tmp && !tmmp){
-            cout << "nastavuji tmmp" << endl;
-            tmmp = true;
-            tmmp3 = false;
-            tmp2++;
-            tmp3 -= 2;
-        }
-        if(*sample == 0 && tmmp){
-            tmp2++;
+        if(!zeroCheck && secondZeros && !firstZeros){
+            numberOfNonZeros++;
         }
 
-        if(!tmp && tmmp && *sample != 0){
-            result = (tmp1 + tmp2 + tmp3) / 3;
+        if(*sample == 0 && lastValue == 0 && !firstZeros && !zeroCheck){
+            cout << "nastavuji zeroCheck" << endl;
+            zeroCheck = true;
+            secondZeros = false;
+            numberOfSecondZeros++;
+            numberOfNonZeros -= 2;
+        }
+        if(*sample == 0 && zeroCheck){
+            numberOfSecondZeros++;
+        }
+
+        if(!firstZeros && zeroCheck && *sample != 0){
+            result = (numberOfFirstZeros + numberOfSecondZeros + numberOfNonZeros) / 3;
             cout << "result: " << result << endl;
            for(int i = 1; i < result; i++){
                 inputFile.read(sample, 1);
@@ -109,9 +92,9 @@ int main(int argc, char** argv) {
 
     }
     samplesPerBaud = result;
-    cout << "tmp1: " << tmp1 << endl;
-    cout << "tmp2: " << tmp2 << endl;
-    cout << "tmp3: " << tmp3 << endl;
+    cout << "tmp1: " << numberOfFirstZeros << endl;
+    cout << "tmp2: " << numberOfSecondZeros << endl;
+    cout << "tmp3: " << numberOfNonZeros << endl;
     cout << "samples per baud: " << samplesPerBaud << endl;
 
     int maximum = 0;
@@ -122,7 +105,7 @@ int main(int argc, char** argv) {
     cout << "amplituda: " << AMPLITUDE << endl;
     while(inputFile.read(sample,1)){
         i++;
-        //cout << "toto nemuze fungovat: " << *sample << endl;
+        cout << "COUNTER: " << i << ", DEBUG: " << *sample << endl;
         if(maximum < *sample)
             maximum = abs(*sample);
 
@@ -132,15 +115,12 @@ int main(int argc, char** argv) {
                 bits.push_back(0);
                 bits.push_back(0);
             }else if(abs(maximum - THIRD_AMPLITUDE) < MAX_ERR){
-                cout << "DEBUG: " << abs(maximum - THIRD_AMPLITUDE) << endl;
                 bits.push_back(0);
                 bits.push_back(1);
             }else if(abs(maximum - TWO_THIRDS_AMPLITUDE) < MAX_ERR){
-                cout << "DEBUG: " << abs(maximum - TWO_THIRDS_AMPLITUDE) << endl;
                 bits.push_back(1);
                 bits.push_back(0);
             }else if(abs(maximum - AMPLITUDE) < MAX_ERR){
-                cout << "DEBUG: " << abs(maximum - AMPLITUDE) << endl;
                 bits.push_back(1);
                 bits.push_back(1);
             }else{
@@ -156,6 +136,19 @@ int main(int argc, char** argv) {
         cout << bits[i];
     }
     cout << endl;
+    string outputFileName = fileName.substr(0, fileName.find(".")) + ".txt";
+    cout << "FILENAME: " << outputFileName << endl;
+
+    ofstream output (outputFileName);
+    if(output.is_open()){
+        for(int i = 0; i < bits.size(); i++){
+            output << bits[i];
+        }
+
+        output.close();
+    }else{
+        cerr << "Connot open file " << outputFileName << endl;
+    }
     
     
     delete [] buffer;

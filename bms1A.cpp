@@ -74,7 +74,6 @@ int main(int argc, char** argv) {
     char tmp[3];    // store bit pairs here
     tmp[2] = '\0';
     for (int i = 0; i < bufferSize; i++){
-        //cout << i  << " modulo: " << i % samplesPerBaud << endl;
         if(i % SAMPLES_PER_BAUD == 0){
             tmp[0] = bits[bitPairIndex];
             tmp[1] = bits[bitPairIndex + 1];
@@ -91,11 +90,14 @@ int main(int argc, char** argv) {
         //cout << "buffer: " << buffer[i] << endl;
     }
 
-    
-    outputFile = SndfileHandle("sine.wav", SFM_WRITE, FORMAT, CHANELS, SAMPLE_RATE);
+    string outputFileName = filename.substr(0, filename.find(".")) + ".wav";
+    cout << "FILENAME: " << outputFileName << endl;
 
     
-    outputFile.write(buffer, bufferSize);
+    outputFile = SndfileHandle(outputFileName, SFM_WRITE, FORMAT, CHANELS, SAMPLE_RATE);
+
+    
+    outputFile.write(buffer, bufferSize + 1);
 
     delete [] buffer;
     return EXIT_SUCCESS;
@@ -119,7 +121,7 @@ string getFileNameFromParameters(int argc, char** argv){
  */
 float setModifier(char* pair){
     string _pair(pair);
-    //cout << "pair: " << _pair << endl;
+    cout << "pair: " << _pair << endl;
     if(_pair == "00")      return 0.0;
     else if(_pair == "01") return 1.0/3.0;
     else if(_pair == "10") return 2.0/3.0;
