@@ -2,6 +2,8 @@ bms1A
 bms1B
 *.wav
 .vscode/*
-BMS2/reed-solomon/*.o
-BMS2/reed-solomon/*.a
-BMS2/reed-solomon/example
+BMS2/reedsolomon/*.o
+BMS2/reedsolomon/*.a
+BMS2/reedsolomon/example
+BMS2/*.txt
+BMS2/*.out

@@ -1,15 +1,15 @@
 CC=g++
 CFLAGS=-std=c++11 -Wall -pedantic -O2
-LIBS=-lm
+SOLOMON=reedsolomon/libecc.a reedsolomon/berlekamp.c reedsolomon/crcgen.c reedsolomon/galois.c reedsolomon/rs.c
 
-all: bms1A bms1B
+all: bms2A bms2B
 
 
-bms1A: bms1A.cpp
-	$(CC) $(CFLAGS) $(LIBS) $^ -o $@ libsndfile.a
+bms2A: bms2A.cpp
+	$(CC) $(CFLAGS) $^ $(SOLOMON) -o $@ 
 
-bms1B: bms1B.cpp
-	$(CC) $(CFLAGS) $(LIBS) $^ -o $@ libsndfile.a
+bms2B: bms2B.cpp
+	$(CC) $(CFLAGS) $^ $(SOLOMON) -o $@ 
 
 clean:
-	rm -f *.o bms1A bms1B
+	rm -f *.o bms2A bms2B
