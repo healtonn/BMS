@@ -46,6 +46,7 @@ int main(int argc, char** argv){
 
     unsigned char c;
     unsigned int i = 0;
+    inputFile.seekg(0, ios::beg);
     while(inputFile >> c){  //load file into buffer
         inputBuffer[i] = c;
         i++;
@@ -53,10 +54,13 @@ int main(int argc, char** argv){
     for (unsigned int i = 0; i < lastInputChunkModif; i++)   //fill last chunk with zeros
         inputBuffer[inputFileSize + lastInputChunkModif - i] = 0;
 
+    for(unsigned int i =0;i < CHUNK_SIZE; i++)
+        infoChunk[i] = 42;
+
     initialize_ecc();
 
     infoChunk[0] = (unsigned char)lastInputChunkModif;  //encode info chunk and store it
-    encode_data(infoChunk, sizeof(unsigned char) * ORIGINAL_BYTES, outputChunk);
+    encode_data(infoChunk, ORIGINAL_BYTES, outputChunk);
     for(int i = 0; i < CHUNK_SIZE; i++)
         inputFileEncodedContent[i] = outputChunk[i];
 
@@ -67,7 +71,7 @@ int main(int argc, char** argv){
         inputChunk[inputchunkIndex] = inputBuffer[i];   //load one char from input buffer into input chunk
         if(inputchunkIndex == ORIGINAL_BYTES - 1){  //one original byte chunk is ready, encode it
             //cout << "debug: " << sizeof(inputChunk) << endl;
-            encode_data(inputChunk, sizeof(unsigned char) * ORIGINAL_BYTES, outputChunk);
+            encode_data(inputChunk, ORIGINAL_BYTES, outputChunk);
             for(int j = 0; j < CHUNK_SIZE; j++){
                 inputFileEncodedContent[((chunkIndex + 1) * CHUNK_SIZE) + j] = outputChunk[j]; // +1 to offset info chunk
             }
@@ -83,6 +87,17 @@ int main(int argc, char** argv){
     cout << "konec na: " << chunkIndex << ", " << i << endl;
     cout << "na konci je chunk index: " << inputchunkIndex << endl;
 
+    for(int i = 0; i < CHUNK_SIZE; i++){ //interlacing
+    cout << "byte v poradi: " << i << endl;
+        for(int j = 0; j <= numberOfInputChunks; j++){  // <= because of first info chunk
+            cout << "saham na chunk: " << j << endl;
+            outputFileEncodedContent[(numberOfInputChunks * i) + j] = inputFileEncodedContent[i + (j * CHUNK_SIZE)];    //+1 for info chunk
+        }
+
+    }
+
+    outputFile.write((char*)outputFileEncodedContent,finalFileSize);
+    //outputFile.write((char*)inputFileEncodedContent,inputFileEncodedContentSize);
     inputFile.close();
     outputFile.close();
     delete [] infoChunk; 
