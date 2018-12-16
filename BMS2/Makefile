@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=-std=c++11 -Wall -pedantic -O2
-SOLOMON=reedsolomon/libecc.a reedsolomon/berlekamp.c reedsolomon/crcgen.c reedsolomon/galois.c reedsolomon/rs.c
+SOLOMON=reedsolomon/berlekamp.c reedsolomon/crcgen.c reedsolomon/galois.c reedsolomon/rs.c
 
 all: bms2A bms2B
 
