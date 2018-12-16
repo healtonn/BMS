@@ -13,3 +13,6 @@ BMS2/test.*
 BMS2/test
 BMS2/debug
 BMS2/input
+BMS2/data.*
+BMS2/errInjecter
+BMS2/test1

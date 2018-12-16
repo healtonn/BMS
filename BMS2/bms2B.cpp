@@ -31,8 +31,7 @@ int main(int argc, char** argv){
     unsigned int inputFileSize = inputFile.tellg();      //input file in bytes
     inputFile.seekg(0, ios::beg);
     unsigned int inputFileChunks = inputFileSize / CHUNK_SIZE;
-
-    cout << "input file size: " << inputFileSize << " inut file chunks: " << inputFileChunks << endl;
+    //cout << "input file size: " << inputFileSize << " inut file chunks: " << inputFileChunks << endl;
 
     unsigned char* interlacedInputFileBuffer = new unsigned char[inputFileSize];
     unsigned char* inputFileBuffer = new unsigned char[inputFileSize];
@@ -41,13 +40,12 @@ int main(int argc, char** argv){
     inputFile.read((char*) interlacedInputFileBuffer, inputFileSize);
 
     for(int i = 0; i < CHUNK_SIZE; i++){
-        for(int j = 0; j < inputFileChunks; j++){
+        for(unsigned int j = 0; j < inputFileChunks; j++){
             inputFileBuffer[(j * CHUNK_SIZE) + i] = interlacedInputFileBuffer[(i * inputFileChunks) + j];
         }
     }
 
-    for(int i = 0; i < inputFileChunks; i++){
-        //cout << "resim chunk cislo: " << i << endl;
+    for(unsigned int i = 0; i < inputFileChunks; i++){
         for(int j = 0; j < CHUNK_SIZE; j++){
             chunkBeingDecoded[j] = inputFileBuffer[j + (i * CHUNK_SIZE)];
         }
@@ -67,13 +65,12 @@ int main(int argc, char** argv){
 
     unsigned int lastModifiedChunk = decodedInputFile[0];
     unsigned int finalFileSize = ((inputFileChunks - 1) * ORIGINAL_BYTES) - lastModifiedChunk;
-    cout << "modifikovano bytu v poslednim chunku: " << lastModifiedChunk << " finalni velikost: " << finalFileSize - lastModifiedChunk << endl;
+    //cout << "modifikovano bytu v poslednim chunku: " << lastModifiedChunk << " finalni velikost: " << finalFileSize - lastModifiedChunk << endl;
 
     unsigned char* finalFileContent = new unsigned char[finalFileSize];
-    for(int i = 1; i < inputFileChunks; i++){
-        cout << "prochazim chunk cislo: " << i << endl;
+    for(unsigned int i = 1; i < inputFileChunks; i++){
         if(i == (inputFileChunks - 1)){ // dont forget to shorten last chunk
-            for(int j = 0; j < ORIGINAL_BYTES - lastModifiedChunk; j++){
+            for(unsigned int j = 0; j < ORIGINAL_BYTES - lastModifiedChunk; j++){
                 finalFileContent[(ORIGINAL_BYTES * (i - 1)) + j] = decodedInputFile[(i * CHUNK_SIZE) + j];
             }
         }else{
@@ -83,10 +80,7 @@ int main(int argc, char** argv){
         }
     }
 
-    //outputFile.write((char*) inputFileBuffer, inputFileSize);
-    //outputFile.write((char*) decodedInputFile, inputFileSize);
     outputFile.write((char*) finalFileContent, finalFileSize);
-
     inputFile.close();
     outputFile.close();
     delete [] interlacedInputFileBuffer;
