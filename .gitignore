@@ -9,3 +9,7 @@ BMS2/*.txt
 BMS2/*.out
 BMS2/bms2A
 BMS2/bms2B
+BMS2/test.*
+BMS2/test
+BMS2/debug
+BMS2/input

@@ -25,17 +25,19 @@ int main(int argc, char** argv){
     ifstream inputFile;
     ofstream outputFile;
 
-    string outputFileName = fileName.substr(0, fileName.find(".")) + ".out";
+    string outputFileName = fileName + ".out";
     cout << "debug: " << outputFileName << endl;
     inputFile.open(fileName.c_str(), std::ifstream::ate | std::ifstream::binary);
     outputFile.open(outputFileName.c_str());
     
     unsigned int inputFileSize = inputFile.tellg();      //input file in bytes
     unsigned int numberOfInputChunks = (unsigned int)ceil((float)inputFileSize / ORIGINAL_BYTES);
+    unsigned int numberOfFinalChunks = numberOfInputChunks + 1; //+ info chunk
     unsigned int lastInputChunkModif = getChunkModification(inputFileSize);
     unsigned int finalFileSize = (numberOfInputChunks + 1) * CHUNK_SIZE;   // output file size in bytes
     unsigned int inputFileEncodedContentSize = numberOfInputChunks * CHUNK_SIZE;
-    cout << "input file size: " <<  inputFileSize << " number of chunks input: " << numberOfInputChunks << " modif: " << lastInputChunkModif << " final: " << finalFileSize << " input file encoded: " << inputFileEncodedContentSize << endl;
+    cout << "input file size: " <<  inputFileSize << " number of chunks input: " << numberOfInputChunks << " modif: " << lastInputChunkModif;
+    cout << " final: " << finalFileSize << " input file encoded: " << inputFileEncodedContentSize << endl;
 
     unsigned char* infoChunk = new unsigned char[CHUNK_SIZE];   //contains info about last last chunk
     unsigned char* inputFileEncodedContent = new unsigned char[inputFileEncodedContentSize];    //encoded stuff without info chunk
@@ -47,14 +49,17 @@ int main(int argc, char** argv){
     unsigned char c;
     unsigned int i = 0;
     inputFile.seekg(0, ios::beg);
-    while(inputFile >> c){  //load file into buffer
+    /*while(inputFile >> c){  //load file into buffer
         inputBuffer[i] = c;
         i++;
     }
-    for (unsigned int i = 0; i < lastInputChunkModif; i++)   //fill last chunk with zeros
-        inputBuffer[inputFileSize + lastInputChunkModif - i] = 0;
+    cout << "konicm na: " << i << endl;*/
+    inputFile.read((char*)inputBuffer, inputFileSize);
+    for(unsigned int i = 0; i < lastInputChunkModif; i++){   //fill last chunk with zeros
+        inputBuffer[inputFileSize + i] = 35;
+    }
 
-    for(unsigned int i =0;i < CHUNK_SIZE; i++)
+    for(unsigned int i = 0;i < CHUNK_SIZE; i++)
         infoChunk[i] = 42;
 
     initialize_ecc();
@@ -85,19 +90,20 @@ int main(int argc, char** argv){
         //cout << "na konci cyklu je i: " << i << endl;
     }
     cout << "konec na: " << chunkIndex << ", " << i << endl;
-    cout << "na konci je chunk index: " << inputchunkIndex << endl;
+    //cout << "na konci je chunk index: " << inputchunkIndex << endl;
 
     for(int i = 0; i < CHUNK_SIZE; i++){ //interlacing
-    cout << "byte v poradi: " << i << endl;
-        for(int j = 0; j <= numberOfInputChunks; j++){  // <= because of first info chunk
-            cout << "saham na chunk: " << j << endl;
-            outputFileEncodedContent[(numberOfInputChunks * i) + j] = inputFileEncodedContent[i + (j * CHUNK_SIZE)];    //+1 for info chunk
+    //cout << "byte v poradi: " << i << endl;
+        for(int j = 0; j < numberOfFinalChunks; j++){  // <= because of first info chunk
+            //cout << "saham na chunk: " << j << endl;
+            outputFileEncodedContent[(numberOfFinalChunks * i) + j] = inputFileEncodedContent[i + (j * CHUNK_SIZE)];    //+1 for info chunk
         }
 
     }
 
-    outputFile.write((char*)outputFileEncodedContent,finalFileSize);
+    //outputFile.write((char*)inputBuffer,inputFileSize + lastInputChunkModif);
     //outputFile.write((char*)inputFileEncodedContent,inputFileEncodedContentSize);
+    outputFile.write((char*)outputFileEncodedContent,finalFileSize);
     inputFile.close();
     outputFile.close();
     delete [] infoChunk; 
