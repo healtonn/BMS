@@ -45,15 +45,21 @@ int main(int argc, char** argv){
     unsigned char* outputChunk = new unsigned char[CHUNK_SIZE]; //CHUNK SIZE of encoded input bytes
 
     unsigned char c;
-    int i = 0;
+    unsigned int i = 0;
     while(inputFile >> c){  //load file into buffer
         inputBuffer[i] = c;
         i++;
     }
-    for (int i = 0; i < lastInputChunkModif; i++)   //fill last chunk with zeros
+    for (unsigned int i = 0; i < lastInputChunkModif; i++)   //fill last chunk with zeros
         inputBuffer[inputFileSize + lastInputChunkModif - i] = 0;
 
     initialize_ecc();
+
+    infoChunk[0] = (unsigned char)lastInputChunkModif;  //encode info chunk and store it
+    encode_data(infoChunk, sizeof(unsigned char) * ORIGINAL_BYTES, outputChunk);
+    for(int i = 0; i < CHUNK_SIZE; i++)
+        inputFileEncodedContent[i] = outputChunk[i];
+
     int inputchunkIndex = 0;
     int chunkIndex = 0;
     i = 0;
